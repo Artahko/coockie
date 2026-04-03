@@ -1,3 +1,3 @@
 # coockie
 
-# We need to write READM
+# We need to write README
