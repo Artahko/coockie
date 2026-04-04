@@ -4,6 +4,8 @@ import streamlit as st
 from openai import OpenAI
 import numpy as np
 import plotly.express as px
+from analytics import analyze
+from parse import parse_log
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -61,9 +63,10 @@ uploaded_file = st.file_uploader("Завантажте лог-файл", type=["
 
 if uploaded_file:
 
-    # with st.spinner("Обробка файлу..."):
-        # df = parse_log(uploaded_file)
-        # metrics = compute_metrics(df)
+    with st.spinner("Обробка файлу..."):
+        df = parse_log(uploaded_file)
+        metrics = analyze(df)
+        # st.write(str(metrics))
         # fig = plot_3d(df)
         # summary = generate_summary(metrics)
 
@@ -72,12 +75,19 @@ if uploaded_file:
     # Metrics
     st.header("Основні метрики")
 
-    # col1, col2, col3, col4 = st.columns(4)
+    col1, col2, col3 = st.columns(3)
+    col4, col5 = st.columns(2)
+    col6, col7 = st.columns(2)
 
-    # col1.metric("⏱️ Тривалість", f"{metrics['duration']} c")
-    # col2.metric("📏 Дистанція", f"{metrics['distance']} м")
-    # col3.metric("🚀 Макс. швидкість", f"{metrics['max_speed']} м/с")
-    # col4.metric("🏔️ Макс. висота", f"{metrics['max_altitude']} м")
+    col1.metric("Тривалість", f"{round(metrics['duration_sec'])} c")
+    col2.metric("Дистанція", f"{round(metrics['distance_m'])} м")
+    col3.metric("Макс. висота", f"{round(metrics['max_altitude_m'])} м")
+
+    col4.metric("Макс. горизонтальна швидкість", f"{round(metrics['max_horizontal_speed_ms'])} м/с")
+    col5.metric("Макс. вертикальна швидкість", f"{round(metrics['max_vertical_speed_ms'])} м/с")
+
+    col6.metric("Макс. прискорення", f"{round(metrics['max_acceleration_ms2'])} м/c^2")
+    col7.metric("Макс. набір висоти", f"{round(metrics['max_altitude_gain_m'])} м")
 
     # Visualisation
     st.header("Траєкторія польоту")
@@ -96,6 +106,8 @@ if uploaded_file:
             z=z,
             title="3D Flight Path",
         )
+
+        fig.update_layout(height=800)
 
         # 🔥 Вивід у Streamlit
         st.plotly_chart(fig, use_container_width=True)

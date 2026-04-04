@@ -49,9 +49,9 @@ def compute_velocity_from_imu(df):
     """
     t = df["time"].values
     df = df.copy()
-    df["vx_imu"] = trapezoid_integrate(df["ax"].values, t)
-    df["vy_imu"] = trapezoid_integrate(df["ay"].values, t)
-    df["vz_imu"] = trapezoid_integrate(df["az"].values, t)
+    df["vx_imu"] = trapezoid_integrate(df["acc_x"].values, t)
+    df["vy_imu"] = trapezoid_integrate(df["acc_y"].values, t)
+    df["vz_imu"] = trapezoid_integrate(df["acc_z"].values, t)
     return df
 
 
@@ -78,7 +78,7 @@ def compute_metrics(df) -> dict:
     result["max_horizontal_speed_ms"] = float(v_horizontal.max())
     result["max_vertical_speed_ms"] = float(v_vertical.max())
 
-    accel_magnitude = np.sqrt(df["ax"] ** 2 + df["ay"] ** 2 + df["az"] ** 2)
+    accel_magnitude = np.sqrt(df["acc_x"] ** 2 + df["acc_y"] ** 2 + df["acc_z"] ** 2)
     result["max_acceleration_ms2"] = float(accel_magnitude.max())
 
     result["max_altitude_m"] = float(df["alt"].max())
@@ -93,7 +93,7 @@ def analyze(df) -> dict:
     Main entry point for the analytics module.
 
     Args:
-        df: DataFrame with columns time, lat, lon, alt, ax, ay, az
+        df: DataFrame with columns time, lat, lon, alt, acc_x, acc_y, acc_z
 
     Returns:
         dict containing all computed flight metrics
