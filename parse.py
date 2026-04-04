@@ -27,7 +27,7 @@ def parse_log(uploaded_file):
         # GPS
         if msg_type == "GPS":
             gps_data.append({
-                "time": msg.TimeUS,
+                "time": msg.TimeUS / 1e6,
                 "lat": msg.Lat,
                 "lon": msg.Lng,
                 "alt": msg.Alt,
@@ -37,7 +37,7 @@ def parse_log(uploaded_file):
         # IMU
         elif msg_type == "IMU":
             imu_data.append({
-                "time": msg.TimeUS,
+                "time": msg.TimeUS / 1e6,
                 "acc_x": msg.AccX,
                 "acc_y": msg.AccY,
                 "acc_z": msg.AccZ
@@ -46,7 +46,7 @@ def parse_log(uploaded_file):
         # ATT
         elif msg_type == "ATT":
             att_data.append({
-                "time": msg.TimeUS,
+                "time": msg.TimeUS / 1e6,
                 "roll": msg.Roll,
                 "pitch": msg.Pitch,
                 "yaw": msg.Yaw

@@ -59,15 +59,17 @@ def compute_metrics(df) -> dict:
     """
     Computes all flight metrics from a cleaned DataFrame.
 
-    Uses GPS-derived velocity (vx, vy, vz) if available,
-    otherwise falls back to IMU integration.
+    Uses GPS-derived speed if available, otherwise falls back to IMU integration.
     """
     result = {}
 
     result["duration_sec"] = float(df["time"].iloc[-1] - df["time"].iloc[0])
     result["distance_m"] = total_distance(df)
 
-    if "vx" in df.columns and "vy" in df.columns and "vz" in df.columns:
+    if "speed" in df.columns:
+        v_horizontal = df["speed"]
+        v_vertical = df["vz"].abs() if "vz" in df.columns else df["acc_z"].abs() * 0
+    elif "vx" in df.columns and "vy" in df.columns:
         v_horizontal = np.sqrt(df["vx"] ** 2 + df["vy"] ** 2)
         v_vertical = df["vz"].abs()
     else:
