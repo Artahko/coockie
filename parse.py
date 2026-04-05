@@ -1,3 +1,5 @@
+"""Файл з функцією для парсингу сирих данних"""
+
 import tempfile
 import pandas as pd
 from pymavlink import mavutil

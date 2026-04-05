@@ -1,12 +1,13 @@
+"""Файл з функціями для аналітики даних"""
+
 import numpy as np
 from math import radians, sin, cos, sqrt, atan2
-
 
 EARTH_RADIUS_M = 6_371_000
 
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Returns distance between two GPS points in meters."""
+    """Returns distance between two GPS points in meters"""
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
     dlon = lon2 - lon1
@@ -15,7 +16,7 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def total_distance(df) -> float:
-    """Returns total distance traveled in meters along the GPS track."""
+    """Returns total distance traveled in meters along the GPS track"""
     lats = df["lat"].values
     lons = df["lon"].values
     return sum(
@@ -26,7 +27,7 @@ def total_distance(df) -> float:
 
 def trapezoid_integrate(values: np.ndarray, times: np.ndarray) -> np.ndarray:
     """
-    Numerically integrates values over time using the trapezoidal method.
+    Numerically integrates values over time using the trapezoidal method
 
     Args:
         values: array of measurements (e.g. acceleration along one axis)
@@ -44,8 +45,8 @@ def trapezoid_integrate(values: np.ndarray, times: np.ndarray) -> np.ndarray:
 
 def compute_velocity_from_imu(df):
     """
-    Integrates IMU accelerations to produce velocity components.
-    Adds columns vx_imu, vy_imu, vz_imu to the DataFrame.
+    Integrates IMU accelerations to produce velocity components
+    Adds columns vx_imu, vy_imu, vz_imu to the DataFrame
     """
     t = df["time"].values
     df = df.copy()
@@ -57,9 +58,9 @@ def compute_velocity_from_imu(df):
 
 def compute_metrics(df) -> dict:
     """
-    Computes all flight metrics from a cleaned DataFrame.
+    Computes all flight metrics from a cleaned DataFrame
 
-    Uses GPS-derived speed if available, otherwise falls back to IMU integration.
+    Uses GPS-derived speed if available, otherwise falls back to IMU integration
     """
     result = {}
 
@@ -92,7 +93,7 @@ def compute_metrics(df) -> dict:
 
 def analyze(df) -> dict:
     """
-    Main entry point for the analytics module.
+    Main entry point for the analytics module
 
     Args:
         df: DataFrame with columns time, lat, lon, alt, acc_x, acc_y, acc_z

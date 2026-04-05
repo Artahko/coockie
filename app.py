@@ -1,61 +1,13 @@
 """Web застосунок"""
 
 import streamlit as st
-from openai import OpenAI
 
-from analytics import analyze
 from parse import parse_log
+from analytics import analyze
 from visualization import plot_flight
-
-client = OpenAI(
-    base_url="https://openrouter.ai/api/v1",
-    api_key="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"
-)
-
-def detect_events(df):
-    """Detects if there was any events during flight """
-    events = []
-
-    if df["alt"].diff().min() < -20:
-        events.append("Різке падіння висоти")
-
-    if df["speed"].max() > 25:
-        events.append("Перевищення швидкості")
-
-    return events
-
-def generate_ai_summary(metrics, df):
-    """Generates AI summary of drone's flight"""
-    prompt = f"""
-    Ти аналітик польотів БПЛА.
-
-    Ось дані польоту:
-    - Тривалість: {metrics['duration']} сек
-    - Дистанція: {metrics['distance']} м
-    - Макс швидкість: {metrics['max_speed']} м/с
-    - Макс висота: {metrics['max_altitude']} м
-
-    Зроби короткий аналіз (3-5 речень):
-    - чи стабільний політ
-    - чи є аномалії
-    - потенційні проблеми
-    """
-
-    events = detect_events(df)
-
-    prompt += f"\nАномалії: {",".join(events)}"
-
-    completion = client.chat.completions.create(
-        model="mistralai/mistral-7b-instruct",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-
-    return completion.choices[0].message.content
+from ai_summary import generate_ai_summary
 
 # UI
-
 st.set_page_config(layout="wide")
 st.title("Analysis Dashboard")
 st.markdown("Made by: coockie team 🍪")
@@ -68,11 +20,11 @@ if uploaded_file:
         df = parse_log(uploaded_file)
         metrics = analyze(df)
         fig = plot_flight(df)
-        # summary = generate_summary(metrics)
+        summary = generate_ai_summary(metrics,df)
 
     st.success("Файл оброблено")
 
-    # Metrics
+    # Метрики
     st.header("Основні метрики")
 
     col1, col2, col3, col4 = st.columns(4)
@@ -87,7 +39,7 @@ if uploaded_file:
     col6.metric("Макс. прискорення", f"{round(metrics['max_acceleration_ms2'])} м/c^2")
     col7.metric("Макс. набір висоти", f"{round(metrics['max_altitude_gain_m'])} м")
 
-    # Visualisation
+    # Візуалізація
     st.header("Траєкторія польоту")
     st.write('Нажміть "Візуалізувати" щоб побачити траєкторію польоту в \
         реальному часі (можливо прийдеться почекати коли дрон почне летіти)')
@@ -97,13 +49,9 @@ if uploaded_file:
         fig.update_layout(height=900, width=1000)
         st.plotly_chart(fig, use_container_width=True)
 
-    # st.plotly_chart(fig, use_container_width=True)
-
-    # AI summary
-
+    # ШІ висновок
     st.header("Аналіз польоту")
-    # with st.spinner("AI аналізує політ..."):
-    #     summary = generate_ai_summary(metrics,df)
-    # st.info(summary)
+    st.info(summary)
+
 else:
     st.info("Завантажте файл, щоб почати аналіз")

@@ -6,6 +6,9 @@ import plotly.graph_objects as go
 
 def plot_flight(df):
     """Повертає графік для візуалізації"""
+    df["time_sec"] = df["time_sec"] * 10e5
+    df["time_sec"].round()
+
     # ENU
     lat0, lon0, alt0 = df["lat"].iloc[0], df["lon"].iloc[0], df["alt"].iloc[0]
 
@@ -48,7 +51,7 @@ def plot_flight(df):
                     ], axis=-1),
                     hovertemplate=
                     "Speed: %{customdata[0]:.2f} m/s<br>" +
-                    "Time: %{customdata[1]:.10f} s<br>" +
+                    "Time: %{customdata[1]:.2f} s<br>" +
                     "Lat: %{customdata[2]:.6f}<br>" +
                     "Lon: %{customdata[3]:.6f}<br>" +
                     "Alt: %{customdata[4]:.1f} m<extra></extra>"
