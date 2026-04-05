@@ -1,3 +1,2 @@
-# coockie
-
-# We need to write README
+Задеплоєний сайт: 
+https://coockie-solution.streamlit.app/
