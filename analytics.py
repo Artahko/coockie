@@ -1,5 +1,4 @@
-"""Файл з функціями для аналітики даних"""
-
+"""File with methods for calculations."""
 import numpy as np
 from math import radians, sin, cos, sqrt, atan2
 
@@ -51,7 +50,17 @@ def filter_physical_limits(df):
     return df[mask]
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Returns distance between two GPS points in meters"""
+    """
+    Unlike simple Euclidean distance, Haversine accounts for Earth's spherical shape.
+    a = sin²(Δlat/2) + cos(lat1)·cos(lat2)·sin²(Δlon/2)
+    d = 2R · atan2(√a, √(1−a))
+
+    Args:
+        lat1, lon1: Latitude and longitude of the first point in decimal degrees.
+        lat2, lon2: Latitude and longitude of the second point.
+    Returns:
+        Distance in meters.
+    """
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
     dlat = lat2 - lat1
     dlon = lon2 - lon1
@@ -60,7 +69,10 @@ def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
 
 
 def total_distance(df) -> float:
-    """Returns total distance traveled in meters along the GPS track"""
+    """
+    Computes the total path length of the flight by summing Haversine distances
+    between all consecutive GPS points.
+    """
     lats = df["lat"].values
     lons = df["lon"].values
     return sum(
@@ -71,14 +83,16 @@ def total_distance(df) -> float:
 
 def trapezoid_integrate(values: np.ndarray, times: np.ndarray) -> np.ndarray:
     """
-    Numerically integrates values over time using the trapezoidal method
+    Numerically integrates a signal over time using the trapezoidal rule
+    which approximates the area under the curve by treating
+    each interval as a trapezoid rather than a rectangle, achieving O(h²)
+    accuracy vs O(h) for the rectangle method.
 
-    Args:
-        values: array of measurements (e.g. acceleration along one axis)
-        times:  corresponding timestamps in seconds
+    result[i] = result[i-1] + (values[i-1] + values[i]) / 2 · Δt
 
-    Returns:
-        array of accumulated values (e.g. velocity)
+    Note on IMU drift: when integrating accelerations twice to get position,
+    errors accumulate quadratically over time. This is why GPS data is
+    preferred as the primary source when available.
     """
     result = np.zeros(len(values))
     for i in range(1, len(values)):
@@ -89,8 +103,17 @@ def trapezoid_integrate(values: np.ndarray, times: np.ndarray) -> np.ndarray:
 
 def compute_velocity_from_imu(df):
     """
-    Integrates IMU accelerations to produce velocity components
-    Adds columns vx_imu, vy_imu, vz_imu to the DataFrame
+    Derives velocity components by integrating IMU accelerometer readings
+    along each axis using the trapezoidal method.
+    Used as a fallback when GPS-derived speed data is unavailable.
+    Results are subject to drift due to cumulative integration error.
+
+    Adds columns to the DataFrame: vx_imu, vy_imu, vz_imu (all in m/s).
+
+    Args:
+        df: DataFrame with columns 'time', 'acc_x', 'acc_y', 'acc_z'.
+    Returns:
+        Copy of the DataFrame with velocity columns appended.
     """
     t = df["time"].values
     df = df.copy()
@@ -102,9 +125,15 @@ def compute_velocity_from_imu(df):
 
 def compute_metrics(df) -> dict:
     """
-    Computes all flight metrics from a cleaned DataFrame
+    Computes all summary flight metrics from a cleaned and merged DataFrame.
 
-    Uses GPS-derived speed if available, otherwise falls back to IMU integration
+    Velocity source priority:
+        1. GPS 'speed' column (most accurate, no drift).
+        2. GPS velocity components 'vx', 'vy', 'vz' if available.
+        3. IMU integration fallback via trapezoid_integrate (prone to drift).
+
+    Vertical speed (when GPS speed is available but 'vz' is missing) is derived
+    as the numerical derivative of altitude: v_z = |Δalt / Δt|.
     """
     df = filter_physical_limits(df)
 
@@ -144,7 +173,7 @@ def compute_metrics(df) -> dict:
 
 def analyze(df) -> dict:
     """
-    Main entry point for the analytics module
+    Main entry point for the analytics module.
 
     Args:
         df: DataFrame with columns time, lat, lon, alt, acc_x, acc_y, acc_z

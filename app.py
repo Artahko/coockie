@@ -20,7 +20,10 @@ if uploaded_file:
         df = parse_log(uploaded_file)
         metrics = analyze(df)
         fig = plot_flight(df)
-        summary = generate_ai_summary(metrics)
+        try:
+            summary = generate_ai_summary(metrics)
+        except:
+            summary = "ШІ висновку не було згенеровано"
 
     st.success("Файл оброблено")
 
