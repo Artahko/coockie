@@ -5,6 +5,50 @@ from math import radians, sin, cos, sqrt, atan2
 
 EARTH_RADIUS_M = 6_371_000
 
+def filter_physical_limits(df):
+    MAX_H_SPEED = 60
+    MAX_V_SPEED = 40
+    MAX_ACCEL = 40
+    MIN_DT = 0.05
+
+    df = df.copy()
+
+    dt = df["time"].diff()
+
+    valid_dt = dt > MIN_DT
+
+    v_vertical = df["alt"].diff().abs() / dt
+
+    df["v_vertical"] = v_vertical
+
+    if "speed" in df.columns:
+        v_horizontal = df["speed"]
+    elif "vx" in df.columns and "vy" in df.columns:
+        v_horizontal = np.sqrt(df["vx"]**2 + df["vy"]**2)
+    else:
+        v_horizontal = None
+
+    if v_horizontal is not None:
+        df["v_horizontal"] = v_horizontal
+
+    accel = np.sqrt(
+        df["acc_x"]**2 +
+        df["acc_y"]**2 +
+        df["acc_z"]**2
+    )
+
+    df["accel_mag"] = accel
+
+    mask = valid_dt
+
+    mask &= df["v_vertical"] < MAX_V_SPEED
+
+    if "v_horizontal" in df:
+        mask &= df["v_horizontal"] < MAX_H_SPEED
+
+    mask &= df["accel_mag"] < MAX_ACCEL
+
+    return df[mask]
 
 def haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Returns distance between two GPS points in meters"""
@@ -62,6 +106,8 @@ def compute_metrics(df) -> dict:
 
     Uses GPS-derived speed if available, otherwise falls back to IMU integration
     """
+    df = filter_physical_limits(df)
+
     result = {}
 
     result["duration_sec"] = float(df["time"].iloc[-1] - df["time"].iloc[0])
