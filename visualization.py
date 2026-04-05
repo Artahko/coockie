@@ -48,7 +48,7 @@ def plot_flight(df):
                     ], axis=-1),
                     hovertemplate=
                     "Speed: %{customdata[0]:.2f} m/s<br>" +
-                    "Time: %{customdata[1]:.2f} s<br>" +
+                    "Time: %{customdata[1]:.10f} s<br>" +
                     "Lat: %{customdata[2]:.6f}<br>" +
                     "Lon: %{customdata[3]:.6f}<br>" +
                     "Alt: %{customdata[4]:.1f} m<extra></extra>"
