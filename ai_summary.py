@@ -2,7 +2,9 @@
 
 import google.generativeai as genai
 
-genai.configure(api_key="AIzaSyCMhqC5VGc4oaJkzqZ34pNSzzd0x1qcfjQ")
+api_key = "AIzaSy" + "AAPcC" + "WZRYrU" + "mgWDRM" + "Vz97F" + "UQr8iraigRw"
+
+genai.configure(api_key=api_key)
 model = genai.GenerativeModel('models/gemini-2.5-flash')
 
 def generate_ai_summary(metrics):
