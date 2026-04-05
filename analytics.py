@@ -68,7 +68,12 @@ def compute_metrics(df) -> dict:
 
     if "speed" in df.columns:
         v_horizontal = df["speed"]
-        v_vertical = df["vz"].abs() if "vz" in df.columns else df["acc_z"].abs() * 0
+        if "vz" in df.columns:
+            v_vertical = df["vz"].abs()
+        else:
+            dt = df["time"].diff().replace(0, np.nan)
+            v_vertical = df["alt"].diff().abs() / dt
+            v_vertical = v_vertical.fillna(0)
     elif "vx" in df.columns and "vy" in df.columns:
         v_horizontal = np.sqrt(df["vx"] ** 2 + df["vy"] ** 2)
         v_vertical = df["vz"].abs()
