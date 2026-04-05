@@ -159,7 +159,7 @@ def compute_metrics(df) -> dict:
         v_vertical = df["vz_imu"].abs()
 
     result["max_horizontal_speed_ms"] = float(v_horizontal.max())
-    result["max_vertical_speed_ms"] = float(v_vertical.max())
+    result["max_vertical_speed_ms"] = float(v_vertical.quantile(0.99))
 
     accel_magnitude = np.sqrt(df["acc_x"] ** 2 + df["acc_y"] ** 2 + df["acc_z"] ** 2)
     result["max_acceleration_ms2"] = float(accel_magnitude.max())
