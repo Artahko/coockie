@@ -68,4 +68,10 @@ def parse_log(uploaded_file):
                            att_df.sort_values("time"),
                            on="time")
 
+    df = df.iloc[1:]
+
+    df["time_sec"] = (
+            df["time"] - df["time"].iloc[0]
+        ) / 1e6
+
     return df

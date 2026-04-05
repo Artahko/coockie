@@ -1,11 +1,11 @@
-"""Web application"""
+"""Web застосунок"""
 
 import streamlit as st
 from openai import OpenAI
-import numpy as np
-import plotly.express as px
+
 from analytics import analyze
 from parse import parse_log
+from visualization import plot_flight
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
@@ -56,6 +56,7 @@ def generate_ai_summary(metrics, df):
 
 # UI
 
+st.set_page_config(layout="wide")
 st.title("Analysis Dashboard")
 st.markdown("Made by: coockie team 🍪")
 
@@ -66,8 +67,7 @@ if uploaded_file:
     with st.spinner("Обробка файлу..."):
         df = parse_log(uploaded_file)
         metrics = analyze(df)
-        # st.write(str(metrics))
-        # fig = plot_3d(df)
+        fig = plot_flight(df)
         # summary = generate_summary(metrics)
 
     st.success("Файл оброблено")
@@ -75,41 +75,26 @@ if uploaded_file:
     # Metrics
     st.header("Основні метрики")
 
-    col1, col2, col3 = st.columns(3)
-    col4, col5 = st.columns(2)
-    col6, col7 = st.columns(2)
+    col1, col2, col3, col4 = st.columns(4)
+    col5, col6, col7 = st.columns(3)
 
     col1.metric("Тривалість", f"{round(metrics['duration_sec'])} c")
     col2.metric("Дистанція", f"{round(metrics['distance_m'])} м")
     col3.metric("Макс. висота", f"{round(metrics['max_altitude_m'])} м")
-
     col4.metric("Макс. горизонтальна швидкість", f"{round(metrics['max_horizontal_speed_ms'])} м/с")
-    col5.metric("Макс. вертикальна швидкість", f"{round(metrics['max_vertical_speed_ms'])} м/с")
 
+    col5.metric("Макс. вертикальна швидкість", f"{round(metrics['max_vertical_speed_ms'])} м/с")
     col6.metric("Макс. прискорення", f"{round(metrics['max_acceleration_ms2'])} м/c^2")
     col7.metric("Макс. набір висоти", f"{round(metrics['max_altitude_gain_m'])} м")
 
     # Visualisation
     st.header("Траєкторія польоту")
+    st.write('Нажміть "Візуалізувати" щоб побачити траєкторію польоту в \
+        реальному часі (можливо прийдеться почекати коли дрон почне летіти)')
+    st.write('Після закінчення анімації графік можна буде рухати')
+
     with st.spinner("Візуалізація..."):
-        # Дані
-        np.random.seed(42)
-        n_points = 100
-        x = np.random.rand(n_points)
-        y = np.random.rand(n_points)
-        z = np.random.rand(n_points)
-
-        # 3D графік
-        fig = px.scatter_3d(
-            x=x,
-            y=y,
-            z=z,
-            title="3D Flight Path",
-        )
-
-        fig.update_layout(height=800)
-
-        # 🔥 Вивід у Streamlit
+        fig.update_layout(height=900, width=1000)
         st.plotly_chart(fig, use_container_width=True)
 
     # st.plotly_chart(fig, use_container_width=True)
