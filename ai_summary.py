@@ -5,11 +5,11 @@ import google.generativeai as genai
 genai.configure(api_key="AIzaSyCMhqC5VGc4oaJkzqZ34pNSzzd0x1qcfjQ")
 model = genai.GenerativeModel('models/gemini-2.5-flash')
 
-def generate_ai_summary(metrics, df):
+def generate_ai_summary(metrics):
     """Генерує висновок ШІ по польоту дрону"""
 
     prompt = f"""
-    Ти аналітик польотів БПЛА.
+    Ти — аналітик польотів БПЛА. Твоє завдання — надати стислий та конструктивний огляд виконаного польоту.
 
     Ось дані польоту:
     - Тривалість: {round(metrics['duration_sec'])} сек
@@ -20,12 +20,11 @@ def generate_ai_summary(metrics, df):
     - Максимальне прискорення: {round(metrics['max_acceleration_ms2'])} м/с^2
     - Максимальний набір висоти: {round(metrics['max_altitude_gain_m'])} м
 
-    Зроби короткий аналіз (3-5 речень):
-    - чи стабільний політ
-    - чи є аномалії
-    - потенційні проблеми
-
-    Пиши без слів 'Аналіз польоту БПЛА:' на початку, просто речення
+    Інструкції:
+    1. Пиши професійному тоні.
+    2. Якщо дані виглядають незвично (наприклад, висока швидкість), інтерпретуй це як високу динамічність польоту, а не як помилку.
+    3. Використовуй 3-5 речень.
+    4. Не використовуй заголовок "Аналіз польоту БПЛА:", починай одразу з тексту.
     """
 
     response = model.generate_content(prompt)
